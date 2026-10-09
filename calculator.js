@@ -96,5 +96,17 @@
     }while(remainder!==start);
     return {negative,whole,nonRepeating,repeating,exact:true};
   }
-  return {evaluate,fraction,decimalParts,rational};
+  // U+0305 COMBINING OVERLINE: an actual Unicode vinculum, not CSS.
+  // It remains attached to each repeating digit when copied or pasted.
+  function decimalString(v,limit=2000){
+    const parts=decimalParts(v,limit);
+    if(!parts.exact)return {text:fraction(v),repeating:false,fractionFallback:true};
+    const repeat=[...parts.repeating].map(digit=>digit+"\u0305").join("");
+    return {
+      text:parts.negative+parts.whole+(parts.nonRepeating||repeat?".":"")+parts.nonRepeating+repeat,
+      repeating:!!repeat,
+      fractionFallback:false
+    };
+  }
+  return {evaluate,fraction,decimalParts,decimalString,rational};
 });
