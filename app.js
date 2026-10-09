@@ -1,51 +1,168 @@
-(function(){
-  const $=id=>document.getElementById(id), input=$("expression"),result=$("result"),info=$("result-info"),history=$("history");
-  let last=ExactCalculator.rational(0n),current=last,items=[];
-  const fractionMode=$("fractions");
-  function show(v){
-    current=v;result.replaceChildren();result.classList.remove("error");
-    if(fractionMode.checked){result.textContent=ExactCalculator.fraction(v);info.textContent="Exact reduced fraction · No rounding";return;}
-    const x=ExactCalculator.decimalParts(v);
-    if(!x.exact){
-      result.textContent=ExactCalculator.fraction(v);
-      info.textContent="Repeating expansion exceeds 2,000 digits; exact fraction shown instead.";
+(function () {
+  const $ = id => document.getElementById(id);
+  const input = $("expression");
+  const result = $("result");
+  const info = $("result-info");
+  const history = $("history");
+  const fractionMode = $("fractions");
+  const copyButton = $("copy-result");
+  const copyLabel = $("copy-label");
+
+  // Ans uses the last saved result. Live previews never change it.
+  let lastSaved = ExactCalculator.rational(0n);
+  let current = null;
+  let items = [];
+
+  function resetCopyLabel() {
+    copyLabel.textContent = "Copy result";
+  }
+
+  function show(value) {
+    current = value;
+    result.classList.remove("error");
+    copyButton.disabled = false;
+    resetCopyLabel();
+
+    if (fractionMode.checked) {
+      result.textContent = ExactCalculator.fraction(value);
+      info.textContent = "Exact reduced fraction · No rounding";
       return;
     }
-    result.append(document.createTextNode(x.negative+x.whole+(x.nonRepeating||x.repeating?".":"") + x.nonRepeating));
-    if(x.repeating){const over=document.createElement("span");over.className="overline";over.textContent=x.repeating;result.append(over);info.textContent="Repeating digits marked with a vinculum · Exact";}
-    else info.textContent="Terminating decimal · Exact";
+
+    const formatted = ExactCalculator.decimalString(value);
+    result.textContent = formatted.text;
+    if (formatted.fractionFallback) {
+      info.textContent = "Repeating expansion exceeds 2,000 digits; exact fraction shown instead.";
+    } else if (formatted.repeating) {
+      info.textContent = "Repeating digits use the Unicode vinculum (U+0305) · Exact";
+    } else {
+      info.textContent = "Terminating decimal · Exact";
+    }
   }
-  function evaluate(){
-    try{
-      const text=input.value.trim(),v=ExactCalculator.evaluate(text,last);
-      last=v;show(v);items.unshift({expression:text,answer:ExactCalculator.fraction(v)});items=items.slice(0,20);renderHistory();
-    }catch(e){result.replaceChildren();result.textContent=e.message;result.classList.add("error");info.textContent="Check your expression and try again.";}
+
+  function updateLive() {
+    const expression = input.value.trim();
+    if (!expression) {
+      current = null;
+      result.classList.remove("error");
+      result.textContent = "0";
+      info.textContent = "Type an expression to see its exact result.";
+      copyButton.disabled = true;
+      resetCopyLabel();
+      return;
+    }
+
+    try {
+      show(ExactCalculator.evaluate(expression, lastSaved));
+    } catch (error) {
+      current = null;
+      result.textContent = "—";
+      result.classList.add("error");
+      info.textContent = error.message;
+      copyButton.disabled = true;
+      resetCopyLabel();
+    }
   }
-  function renderHistory(){
+
+  function saveToHistory() {
+    if (current === null) return;
+    const expression = input.value.trim();
+    if (!expression) return;
+    const answer = ExactCalculator.fraction(current);
+    lastSaved = current;
+    if (items[0]?.expression !== expression || items[0]?.answer !== answer) {
+      items.unshift({ expression, answer });
+      items = items.slice(0, 20);
+      renderHistory();
+    }
+  }
+
+  function renderHistory() {
     history.replaceChildren();
-    $("history-count").textContent=items.length+" calculation"+(items.length===1?"":"s");
-    if(!items.length){const p=document.createElement("p");p.className="empty";p.textContent="Your calculations will appear here.";history.append(p);return;}
-    for(const item of items){
-      const button=document.createElement("button");button.className="history-item";button.type="button";button.title="Use this expression";
-      const left=document.createElement("span");left.className="history-expression";left.textContent=item.expression;
-      const right=document.createElement("span");right.className="history-answer";right.textContent=item.answer;
-      button.append(left,right);button.addEventListener("click",()=>{input.value=item.expression;input.focus();});
+    $("history-count").textContent = items.length + " calculation" + (items.length === 1 ? "" : "s");
+
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty";
+      empty.textContent = "Your calculations will appear here.";
+      history.append(empty);
+      return;
+    }
+
+    for (const item of items) {
+      const button = document.createElement("button");
+      button.className = "history-item";
+      button.type = "button";
+      button.title = "Use this expression";
+      const expression = document.createElement("span");
+      expression.className = "history-expression";
+      expression.textContent = item.expression;
+      const answer = document.createElement("span");
+      answer.className = "history-answer";
+      answer.textContent = item.answer;
+      button.append(expression, answer);
+      button.addEventListener("click", () => {
+        input.value = item.expression;
+        updateLive();
+        input.focus();
+      });
       history.append(button);
     }
   }
-  $("calculate").addEventListener("click",evaluate);
-  input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();evaluate();}});
-  fractionMode.addEventListener("change",()=>show(current));
-  $("copy-result").addEventListener("click",async()=>{const text=ExactCalculator.fraction(current);try{await navigator.clipboard.writeText(text);info.textContent="Exact fraction copied: "+text;}catch{info.textContent="Copy unavailable; fraction: "+text;}});
-  $("clear-history").addEventListener("click",()=>{items=[];renderHistory();});
-  document.querySelectorAll("[data-key],[data-action]").forEach(button=>button.addEventListener("click",()=>{
-    const action=button.dataset.action;
-    if(action==="evaluate"){evaluate();return;}
-    if(action==="clear"){input.value="";show(ExactCalculator.rational(0n));input.focus();return;}
-    if(action==="backspace"){const a=input.selectionStart,b=input.selectionEnd;if(a!==b){input.setRangeText("",a,b,"start");}else if(a>0){input.setRangeText("",a-1,a,"start");}input.focus();return;}
-    const key=button.dataset.key;
-    if(key==="π"){info.textContent="π is irrational; exact rational calculations do not support it.";return;}
-    input.setRangeText(key,input.selectionStart,input.selectionEnd,"end");input.focus();
-  }));
-  show(current);
+
+  input.addEventListener("input", updateLive);
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      saveToHistory();
+    }
+  });
+  fractionMode.addEventListener("change", () => {
+    if (current !== null) show(current);
+  });
+  copyButton.addEventListener("click", async () => {
+    if (current === null) return;
+    // Copy exactly what the user sees, including actual U+0305 characters.
+    const text = result.textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      copyLabel.textContent = "Copied!";
+    } catch {
+      copyLabel.textContent = "Copy failed";
+      info.textContent = "Clipboard unavailable. You can select and copy the result manually.";
+    }
+  });
+  $("clear-history").addEventListener("click", () => {
+    items = [];
+    renderHistory();
+  });
+
+  document.querySelectorAll("[data-key],[data-action]").forEach(button => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.action;
+      if (action === "save") {
+        saveToHistory();
+        return;
+      }
+      if (action === "clear") {
+        input.value = "";
+      } else if (action === "backspace") {
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        if (start !== end) input.setRangeText("", start, end, "start");
+        else if (start > 0) input.setRangeText("", start - 1, start, "start");
+      } else {
+        const key = button.dataset.key;
+        if (key === "π") {
+          info.textContent = "π is irrational and cannot be represented as an exact fraction.";
+          return;
+        }
+        input.setRangeText(key, input.selectionStart, input.selectionEnd, "end");
+      }
+      updateLive();
+      input.focus();
+    });
+  });
+
+  updateLive();
 })();
