@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10151f">
+<meta name="description" content="An exact precision calculator with repeating decimal and fraction display.">
+<title>Exact — Precision Calculator</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./calculator.js" defer></script>
+<script src="./app.js" defer></script>
+</head>
+<body>
+<main class="shell">
+<header class="top"><div class="brand"><span class="brand-mark" aria-hidden="true">≡</span><div><strong>exact<span class="dot">.</span></strong><small>precision calculator</small></div></div><span class="top-label">NO ROUNDING. JUST MATH.</span></header>
+<section class="calculator" aria-label="Calculator">
+<div class="calc-header"><span class="eyebrow">YOUR EXPRESSION</span><button id="clear-history" class="subtle" type="button">Clear history</button></div>
+<label for="expression" class="sr-only">Mathematical expression</label>
+<textarea id="expression" rows="2" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Try 1 / 7 or (2 + 3) × 4"></textarea>
+<div class="expression-footer"><span>Enter to calculate · Shift + Enter for new line</span><button id="calculate" class="calculate" type="button">Calculate <span aria-hidden="true">→</span></button></div>
+<div class="result-panel" aria-live="polite"><div class="result-top"><span class="eyebrow">RESULT</span><div class="result-actions"><label class="toggle-label" for="fractions"><input id="fractions" type="checkbox"><span class="switch"></span> Fraction mode</label><button id="copy-result" class="icon-button" type="button" title="Copy result" aria-label="Copy result">⧉</button></div></div><div id="result" class="result-value">0</div><div id="result-info" class="result-info">Exact arithmetic, down to the last digit.</div></div>
+<div class="keypad" aria-label="Calculator keys">
+<button data-key="(">(</button><button data-key=")">)</button><button data-action="backspace" title="Backspace">⌫</button><button data-action="clear" class="special">AC</button>
+<button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button data-key="/" class="operator">÷</button>
+<button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="*" class="operator">×</button>
+<button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="-" class="operator">−</button>
+<button data-key="0">0</button><button data-key=".">.</button><button data-key="^" class="operator">^</button><button data-key="+" class="operator">+</button>
+<button data-key="%" class="operator">%</button><button data-key="π" class="operator">π</button><button data-key="ans" class="operator">Ans</button><button data-action="evaluate" class="equals">=</button>
+</div></section>
+<section class="below"><div class="history-heading"><h2>History</h2><span id="history-count">0 calculations</span></div><div id="history" class="history"><p class="empty">Your calculations will appear here.</p></div></section>
+<footer><span>Built for exact answers.</span><span>Rational arithmetic · No tracking · Works offline after download</span></footer>
+</main>
+</body></html>
