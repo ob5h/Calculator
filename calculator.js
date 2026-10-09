@@ -28,11 +28,12 @@
     return rational(BigInt((whole||"0")+frac),ten(frac.length));
   }
   function tokenize(input){
-    const s=input.replace(/×|✕|\*/g,"*").replace(/÷/g,"/").replace(/[−–]/g,"-").replace(/\bans\b/gi,"@").replace(/\s+/g,"");
+    const s=input.replace(/×|✕|\*/g,"*").replace(/÷/g,"/").replace(/[−–]/g,"-").replace(/\bans\b/gi,"@");
     const tokens=[];let i=0;
     while(i<s.length){
       const tail=s.slice(i), match=tail.match(/^(?:\d+(?:\.\d*)?|\.\d+)/);
       if(match){tokens.push({type:"number",value:match[0]});i+=match[0].length;continue;}
+      if(/\s/.test(s[i])){i++;continue;}
       const c=s[i];
       if("+-*/^()%@".includes(c)){tokens.push({type:c});i++;continue;}
       if(/[xX]/.test(c)){tokens.push({type:"*"});i++;continue;}
