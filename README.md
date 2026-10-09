@@ -5,10 +5,11 @@ A responsive, static calculator website that can be deployed using GitHub Pages.
 ## Features
 
 - Exact rational arithmetic with JavaScript `BigInt`: calculations are never rounded or converted to binary floating-point.
-- Default display shows terminating decimals or repeating decimals with a **vinculum** (bar over the repeating digits).
+- Default display shows terminating decimals or repeating decimals with a **real Unicode vinculum** (U+0305 COMBINING OVERLINE on each repeating digit). The text remains intact when copied and pasted.
 - Optional **Fraction mode** displays the fully reduced numerator/denominator.
 - Accepts typed expressions with parentheses, positive and negative values, decimals, `+`, `-`, `/`, `÷`, `*`, `x`, `X`, `×`, exponent `^`, and integer remainder `%`. `ans` inserts the previous answer.
-- Supports keyboard input and calculator buttons. Enter evaluates; Shift+Enter inserts a newline.
+- **Live calculation:** the result updates as you type, paste, or use the keypad; no Calculate button. Enter or the = key optionally saves the current result to history; Shift+Enter inserts a newline.
+- **Copy result** copies the exact currently displayed result: Unicode-overlined decimal by default, or the reduced fraction when Fraction mode is enabled.
 - No `eval`; input is parsed explicitly.
 - Results exceeding the 2,000-digit repeating-display cap appear as exact fractions instead of being rounded or truncated.
 
